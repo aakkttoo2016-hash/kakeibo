@@ -104,6 +104,31 @@
     cursor: pointer;
   }
 
+  .neko-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .neko-img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    flex-shrink: 0;
+    transition: opacity .3s;
+  }
+
+  .bubble {
+    background: #FBF0FF;
+    border: 2px solid #EDD8FF;
+    border-radius: 16px 16px 16px 4px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #9B6DC8;
+    line-height: 1.7;
+    flex: 1;
+  }
+
   .amount-display {
     font-size: 32px;
     font-weight: 500;
@@ -198,6 +223,10 @@
     <div class="prog-track">
       <div class="prog-fill" id="prog" style="width:0%;"></div>
     </div>
+    <div class="neko-row">
+      <img id="neko-home" class="neko-img" src="neko_yoyuu.png" alt="ねこ" />
+      <div class="bubble" id="bubble-home">…。</div>
+    </div>
     <div class="budget-row">
       <input type="number" id="budget-input" placeholder="今月の予算を入力" />
       <button onclick="setBudget()">設定</button>
@@ -205,6 +234,10 @@
   </div>
 
   <div class="card">
+    <div class="neko-row">
+      <img class="neko-img" src="neko_wait.png" alt="ねこ" />
+      <div class="bubble">はやく入力して。</div>
+    </div>
     <div class="amount-display" id="amount-display">¥ 0</div>
     <div class="keypad">
       <div class="key" onclick="pressKey('1')">1</div>
@@ -223,7 +256,7 @@
     </div>
   </div>
 
-  <div class="card" id="history-card">
+  <div class="card">
     <div class="history-title">今月の記録</div>
     <div id="history-list"><div class="empty">まだ記録がありません</div></div>
     <button class="reset-btn" onclick="resetMonth()">今月をリセット</button>
@@ -233,6 +266,37 @@
 <script>
   let input = '';
   let data = JSON.parse(localStorage.getItem('kakeibo') || '{"budget":30000,"spent":0,"entries":[]}');
+
+  const nekoStates = {
+    yoyuu: {
+      img: 'neko_yoyuu.png',
+      messages: ['…。', 'まだ余裕あるじゃん。', 'ふーん。']
+    },
+    chui: {
+      img: 'neko_chui.png',
+      messages: ['ちょっと使いすぎじゃない？', '半分以上使ってるけど。', 'ペース、大丈夫？']
+    },
+    yabai: {
+      img: 'neko_yabai.png',
+      messages: ['やばくない？', 'もうほとんどないじゃん。', '残り少ないけど、わかってる？']
+    },
+    owari: {
+      img: 'neko_owari.png',
+      messages: ['…。', '終わったね。', '来月はちゃんとして。']
+    }
+  };
+
+  function getNekoState(pct) {
+    if (pct >= 100) return 'owari';
+    if (pct >= 70)  return 'yabai';
+    if (pct >= 40)  return 'chui';
+    return 'yoyuu';
+  }
+
+  function randomMsg(state) {
+    const msgs = nekoStates[state].messages;
+    return msgs[Math.floor(Math.random() * msgs.length)];
+  }
 
   function save() {
     localStorage.setItem('kakeibo', JSON.stringify(data));
@@ -245,12 +309,16 @@
   function updateUI() {
     const remaining = data.budget - data.spent;
     const pct = Math.min(100, Math.round(data.spent / data.budget * 100));
+
     document.getElementById('balance').textContent = fmt(remaining);
     document.getElementById('balance-hint').textContent =
       '予算 ' + fmt(data.budget) + '　使用 ' + fmt(data.spent);
     document.getElementById('prog').style.width = pct + '%';
-    document.getElementById('prog').style.background =
-      pct > 80 ? '#F4A8D8' : '#D4A8F0';
+    document.getElementById('prog').style.background = pct >= 70 ? '#F4A8D8' : '#D4A8F0';
+
+    const state = getNekoState(pct);
+    document.getElementById('neko-home').src = nekoStates[state].img;
+    document.getElementById('bubble-home').textContent = randomMsg(state);
 
     const list = document.getElementById('history-list');
     if (data.entries.length === 0) {
@@ -285,7 +353,7 @@
     const amount = parseInt(input || '0');
     if (amount <= 0) return;
     const now = new Date();
-    const time = now.getMonth()+1 + '/' + now.getDate() + ' ' +
+    const time = (now.getMonth()+1) + '/' + now.getDate() + ' ' +
       now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
     data.entries.push({ amount, time, memo: '出費' });
     data.spent += amount;
