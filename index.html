@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ゆるい家計簿</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+    background: #FDF0FF;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem 1rem;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 390px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+    color: #9B6DC8;
+    letter-spacing: .05em;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    border: 2px solid #F0E0FF;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .label {
+    font-size: 11px;
+    color: #D4B8EE;
+    text-align: center;
+    letter-spacing: .05em;
+  }
+
+  .balance {
+    font-size: 42px;
+    font-weight: 500;
+    color: #9B6DC8;
+    text-align: center;
+  }
+
+  .balance-hint {
+    font-size: 11px;
+    color: #D4B8EE;
+    text-align: center;
+  }
+
+  .prog-track {
+    height: 10px;
+    background: #F3E8FF;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    background: #D4A8F0;
+    border-radius: 10px;
+    transition: width .4s ease;
+  }
+
+  .budget-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .budget-row input {
+    flex: 1;
+    border: 2px solid #EDD8FF;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #9B6DC8;
+    outline: none;
+    background: #FBF0FF;
+  }
+
+  .budget-row button {
+    background: #D4A8F0;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .amount-display {
+    font-size: 32px;
+    font-weight: 500;
+    color: #9B6DC8;
+    text-align: center;
+    background: #F8F0FF;
+    border-radius: 16px;
+    padding: 14px 0;
+    letter-spacing: .02em;
+  }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .key {
+    background: #fff;
+    border: 2px solid #EDD8FF;
+    border-radius: 14px;
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #9B6DC8;
+    cursor: pointer;
+    text-align: center;
+    user-select: none;
+    transition: background .1s;
+  }
+
+  .key:active { background: #F3E8FF; }
+  .key-del { background: #FBF0FF; color: #C488D4; }
+  .key-ok {
+    background: #D4A8F0;
+    color: #fff;
+    border: none;
+    grid-column: span 2;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+  .key-ok:active { background: #C490E0; }
+
+  .history-title {
+    font-size: 12px;
+    color: #D4B8EE;
+    letter-spacing: .04em;
+  }
+
+  .entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FDF6FF;
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+
+  .entry-left { display: flex; flex-direction: column; gap: 2px; }
+  .entry-memo { font-size: 13px; color: #A880CC; font-weight: 500; }
+  .entry-time { font-size: 10px; color: #D4B8EE; }
+  .entry-amt { font-size: 14px; font-weight: 500; color: #C488D4; }
+
+  .empty {
+    text-align: center;
+    font-size: 12px;
+    color: #D4B8EE;
+    padding: 8px 0;
+  }
+
+  .reset-btn {
+    background: none;
+    border: 1.5px solid #EDD8FF;
+    border-radius: 12px;
+    padding: 8px 0;
+    font-size: 12px;
+    color: #D4B8EE;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>ゆるい家計簿</h1>
+
+  <div class="card">
+    <div class="label">今月の残り</div>
+    <div class="balance" id="balance">¥30,000</div>
+    <div class="balance-hint" id="balance-hint">予算 ¥30,000　使用 ¥0</div>
+    <div class="prog-track">
+      <div class="prog-fill" id="prog" style="width:0%;"></div>
+    </div>
+    <div class="budget-row">
+      <input type="number" id="budget-input" placeholder="今月の予算を入力" />
+      <button onclick="setBudget()">設定</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="amount-display" id="amount-display">¥ 0</div>
+    <div class="keypad">
+      <div class="key" onclick="pressKey('1')">1</div>
+      <div class="key" onclick="pressKey('2')">2</div>
+      <div class="key" onclick="pressKey('3')">3</div>
+      <div class="key" onclick="pressKey('4')">4</div>
+      <div class="key" onclick="pressKey('5')">5</div>
+      <div class="key" onclick="pressKey('6')">6</div>
+      <div class="key" onclick="pressKey('7')">7</div>
+      <div class="key" onclick="pressKey('8')">8</div>
+      <div class="key" onclick="pressKey('9')">9</div>
+      <div class="key" onclick="pressKey('00')">00</div>
+      <div class="key" onclick="pressKey('0')">0</div>
+      <div class="key key-del" onclick="pressDelete()">⌫</div>
+      <div class="key key-ok" onclick="record()">記録する</div>
+    </div>
+  </div>
+
+  <div class="card" id="history-card">
+    <div class="history-title">今月の記録</div>
+    <div id="history-list"><div class="empty">まだ記録がありません</div></div>
+    <button class="reset-btn" onclick="resetMonth()">今月をリセット</button>
+  </div>
+</div>
+
+<script>
+  let input = '';
+  let data = JSON.parse(localStorage.getItem('kakeibo') || '{"budget":30000,"spent":0,"entries":[]}');
+
+  function save() {
+    localStorage.setItem('kakeibo', JSON.stringify(data));
+  }
+
+  function fmt(n) {
+    return '¥' + Math.round(n).toLocaleString();
+  }
+
+  function updateUI() {
+    const remaining = data.budget - data.spent;
+    const pct = Math.min(100, Math.round(data.spent / data.budget * 100));
+    document.getElementById('balance').textContent = fmt(remaining);
+    document.getElementById('balance-hint').textContent =
+      '予算 ' + fmt(data.budget) + '　使用 ' + fmt(data.spent);
+    document.getElementById('prog').style.width = pct + '%';
+    document.getElementById('prog').style.background =
+      pct > 80 ? '#F4A8D8' : '#D4A8F0';
+
+    const list = document.getElementById('history-list');
+    if (data.entries.length === 0) {
+      list.innerHTML = '<div class="empty">まだ記録がありません</div>';
+    } else {
+      list.innerHTML = data.entries.slice().reverse().map(e =>
+        `<div class="entry">
+          <div class="entry-left">
+            <div class="entry-memo">${e.memo || '出費'}</div>
+            <div class="entry-time">${e.time}</div>
+          </div>
+          <div class="entry-amt">-${fmt(e.amount)}</div>
+        </div>`
+      ).join('');
+    }
+  }
+
+  function pressKey(k) {
+    if (input.length >= 7) return;
+    input += k;
+    document.getElementById('amount-display').textContent =
+      '¥ ' + parseInt(input || '0').toLocaleString();
+  }
+
+  function pressDelete() {
+    input = input.slice(0, -1);
+    document.getElementById('amount-display').textContent =
+      '¥ ' + parseInt(input || '0').toLocaleString();
+  }
+
+  function record() {
+    const amount = parseInt(input || '0');
+    if (amount <= 0) return;
+    const now = new Date();
+    const time = now.getMonth()+1 + '/' + now.getDate() + ' ' +
+      now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+    data.entries.push({ amount, time, memo: '出費' });
+    data.spent += amount;
+    save();
+    updateUI();
+    input = '';
+    document.getElementById('amount-display').textContent = '¥ 0';
+  }
+
+  function setBudget() {
+    const v = parseInt(document.getElementById('budget-input').value);
+    if (!v || v <= 0) return;
+    data.budget = v;
+    save();
+    updateUI();
+    document.getElementById('budget-input').value = '';
+  }
+
+  function resetMonth() {
+    if (!confirm('今月の記録をリセットしますか？')) return;
+    data.spent = 0;
+    data.entries = [];
+    save();
+    updateUI();
+  }
+
+  updateUI();
+</script>
+</body>
+</html>
