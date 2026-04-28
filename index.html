@@ -3,241 +3,416 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ゆるい家計簿</title>
+<title>かけいぼ</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
-    background: #FDF0FF;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 2rem 1rem;
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+  background: #FFF8E7;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem 4rem;
+  position: relative;
+  overflow-x: hidden;
+}
 
-  .app {
-    width: 100%;
-    max-width: 390px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+/* ===== 背景デコ ===== */
+.bg-deco {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: .18;
+  animation: floatY 6s ease-in-out infinite;
+}
+.bg-circle:nth-child(1)  { width:90px;height:90px;  background:#FFD95A; top:4%;  left:5%;  animation-delay:0s; }
+.bg-circle:nth-child(2)  { width:60px;height:60px;  background:#FFA94D; top:10%; right:8%; animation-delay:1s; }
+.bg-circle:nth-child(3)  { width:44px;height:44px;  background:#FFD95A; top:22%; left:18%; animation-delay:2s; }
+.bg-circle:nth-child(4)  { width:70px;height:70px;  background:#FFBF69; top:38%; right:4%; animation-delay:.5s; }
+.bg-circle:nth-child(5)  { width:50px;height:50px;  background:#FFD95A; top:55%; left:3%;  animation-delay:1.5s; }
+.bg-circle:nth-child(6)  { width:80px;height:80px;  background:#FFA94D; top:70%; right:10%;animation-delay:2.5s; }
+.bg-circle:nth-child(7)  { width:36px;height:36px;  background:#FFD95A; top:82%; left:20%; animation-delay:.8s; }
+.bg-circle:nth-child(8)  { width:55px;height:55px;  background:#FFBF69; top:90%; right:25%;animation-delay:3s; }
 
-  h1 {
-    text-align: center;
-    font-size: 18px;
-    font-weight: 500;
-    color: #9B6DC8;
-    letter-spacing: .05em;
-  }
+.bg-star {
+  position: absolute;
+  opacity: .2;
+  animation: twinkle 3s ease-in-out infinite;
+}
+.bg-star:nth-child(9)  { top:6%;  left:40%; animation-delay:0s; }
+.bg-star:nth-child(10) { top:25%; right:22%;animation-delay:1s; }
+.bg-star:nth-child(11) { top:50%; left:45%; animation-delay:2s; }
+.bg-star:nth-child(12) { top:75%; right:40%;animation-delay:.5s; }
 
-  .card {
-    background: #fff;
-    border-radius: 24px;
-    border: 2px solid #F0E0FF;
-    padding: 20px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+@keyframes floatY {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+@keyframes twinkle {
+  0%,100% { opacity:.2; transform:scale(1); }
+  50%      { opacity:.45; transform:scale(1.3); }
+}
 
-  .label {
-    font-size: 11px;
-    color: #D4B8EE;
-    text-align: center;
-    letter-spacing: .05em;
-  }
+/* ===== アプリ本体 ===== */
+.app {
+  width: 100%;
+  max-width: 390px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
 
-  .balance {
-    font-size: 42px;
-    font-weight: 500;
-    color: #9B6DC8;
-    text-align: center;
-  }
+h1 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #E8700A;
+  letter-spacing: .06em;
+  text-shadow: 0 2px 8px #FFD95A88;
+  animation: titleBounce 2s ease-in-out infinite;
+}
+@keyframes titleBounce {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
 
-  .balance-hint {
-    font-size: 11px;
-    color: #D4B8EE;
-    text-align: center;
-  }
+.card {
+  background: #fff;
+  border-radius: 24px;
+  border: 2.5px solid #FFD95A;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  box-shadow: 0 4px 20px #FFD95A33;
+  animation: fadeUp .4s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 
-  .prog-track {
-    height: 10px;
-    background: #F3E8FF;
-    border-radius: 10px;
-    overflow: hidden;
-  }
+.label {
+  font-size: 11px;
+  color: #FFA94D;
+  text-align: center;
+  letter-spacing: .06em;
+  font-weight: 600;
+}
 
-  .prog-fill {
-    height: 100%;
-    background: #D4A8F0;
-    border-radius: 10px;
-    transition: width .4s ease;
-  }
+.balance {
+  font-size: 44px;
+  font-weight: 700;
+  color: #E8700A;
+  text-align: center;
+  animation: popIn .3s cubic-bezier(.36,1.6,.6,1) both;
+}
+@keyframes popIn {
+  from { transform:scale(.8); opacity:0; }
+  to   { transform:scale(1);  opacity:1; }
+}
 
-  .budget-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
+.balance-hint {
+  font-size: 11px;
+  color: #FFA94D;
+  text-align: center;
+}
 
-  .budget-row input {
-    flex: 1;
-    border: 2px solid #EDD8FF;
-    border-radius: 12px;
-    padding: 8px 12px;
-    font-size: 14px;
-    color: #9B6DC8;
-    outline: none;
-    background: #FBF0FF;
-  }
+.prog-track {
+  height: 12px;
+  background: #FFF0C0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid #FFD95A;
+}
+.prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFD95A, #FFA94D);
+  border-radius: 10px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
 
-  .budget-row button {
-    background: #D4A8F0;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 8px 14px;
-    font-size: 13px;
-    cursor: pointer;
-  }
+/* ===== ねこ ===== */
+.neko-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.neko-img {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  flex-shrink: 0;
+  animation: nekoBounce 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 3px 6px #FFD95A66);
+}
+@keyframes nekoBounce {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-6px) rotate(2deg); }
+}
+.bubble {
+  background: #FFF8E7;
+  border: 2px solid #FFD95A;
+  border-radius: 16px 16px 16px 4px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #C05000;
+  line-height: 1.7;
+  flex: 1;
+  position: relative;
+  animation: bubblePop .3s cubic-bezier(.36,1.6,.6,1) both;
+}
+@keyframes bubblePop {
+  from { transform:scale(.9); opacity:0; }
+  to   { transform:scale(1);  opacity:1; }
+}
 
-  .neko-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-  }
+/* ===== 累計エリア ===== */
+.summary-row {
+  display: flex;
+  gap: 8px;
+}
+.summary-box {
+  flex: 1;
+  background: #FFF8E7;
+  border: 2px solid #FFD95A;
+  border-radius: 16px;
+  padding: 10px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.summary-label { font-size: 10px; color: #FFA94D; font-weight: 600; }
+.summary-val   { font-size: 18px; font-weight: 700; color: #E8700A; }
 
-  .neko-img {
-    width: 72px;
-    height: 72px;
-    object-fit: contain;
-    flex-shrink: 0;
-    transition: opacity .3s;
-  }
+/* ===== 経費タイプ ===== */
+.type-row {
+  display: flex;
+  gap: 8px;
+}
+.type-btn {
+  flex: 1;
+  border: 2.5px solid #FFD95A;
+  border-radius: 14px;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFA94D;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+}
+.type-btn.active {
+  background: linear-gradient(135deg, #FFD95A, #FFA94D);
+  color: #fff;
+  border-color: #FFA94D;
+  transform: scale(1.04);
+  box-shadow: 0 3px 10px #FFD95A55;
+}
 
-  .bubble {
-    background: #FBF0FF;
-    border: 2px solid #EDD8FF;
-    border-radius: 16px 16px 16px 4px;
-    padding: 10px 12px;
-    font-size: 12px;
-    color: #9B6DC8;
-    line-height: 1.7;
-    flex: 1;
-  }
+/* ===== 入力 ===== */
+.amount-display {
+  font-size: 34px;
+  font-weight: 700;
+  color: #E8700A;
+  text-align: center;
+  background: #FFF8E7;
+  border-radius: 16px;
+  border: 2px solid #FFD95A;
+  padding: 14px 0;
+}
 
-  .amount-display {
-    font-size: 32px;
-    font-weight: 500;
-    color: #9B6DC8;
-    text-align: center;
-    background: #F8F0FF;
-    border-radius: 16px;
-    padding: 14px 0;
-    letter-spacing: .02em;
-  }
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.key {
+  background: #fff;
+  border: 2px solid #FFD95A;
+  border-radius: 14px;
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #E8700A;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  transition: all .1s;
+}
+.key:active { background: #FFF0C0; transform: scale(.95); }
+.key-del { background: #FFF8E7; color: #FFA94D; }
+.key-ok {
+  background: linear-gradient(135deg, #FFD95A, #FF8C00);
+  color: #fff;
+  border: none;
+  grid-column: span 2;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px #FFD95A66;
+  transition: transform .1s, box-shadow .1s;
+}
+.key-ok:active { transform: scale(.96); box-shadow: 0 2px 6px #FFD95A44; }
 
-  .keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
+/* ===== 履歴 ===== */
+.history-title { font-size: 12px; color: #FFA94D; font-weight: 600; }
+.entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFF8E7;
+  border-radius: 14px;
+  padding: 10px 12px;
+  animation: fadeUp .25s ease both;
+}
+.entry-left { display: flex; flex-direction: column; gap: 2px; }
+.entry-memo { font-size: 13px; color: #C05000; font-weight: 600; }
+.entry-time { font-size: 10px; color: #FFA94D; }
+.entry-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.entry-amt  { font-size: 14px; font-weight: 700; color: #E8700A; }
+.entry-tag  {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.tag-required    { background: #FFD95A33; color: #C05000; }
+.tag-notrequired { background: #FFE0E0; color: #C04040; }
 
-  .key {
-    background: #fff;
-    border: 2px solid #EDD8FF;
-    border-radius: 14px;
-    padding: 12px 0;
-    font-size: 16px;
-    font-weight: 500;
-    color: #9B6DC8;
-    cursor: pointer;
-    text-align: center;
-    user-select: none;
-    transition: background .1s;
-  }
+.empty { text-align:center; font-size:12px; color:#FFA94D; padding:8px 0; }
 
-  .key:active { background: #F3E8FF; }
-  .key-del { background: #FBF0FF; color: #C488D4; }
-  .key-ok {
-    background: #D4A8F0;
-    color: #fff;
-    border: none;
-    grid-column: span 2;
-    border-radius: 20px;
-    font-size: 14px;
-  }
-  .key-ok:active { background: #C490E0; }
+.reset-btn {
+  background: none;
+  border: 1.5px solid #FFD95A;
+  border-radius: 12px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: #FFA94D;
+  cursor: pointer;
+  text-align: center;
+}
 
-  .history-title {
-    font-size: 12px;
-    color: #D4B8EE;
-    letter-spacing: .04em;
-  }
+/* ===== 記録完了アニメ ===== */
+.pop-anim {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  font-size: 48px;
+  pointer-events: none;
+  z-index: 999;
+  animation: popFly 1s cubic-bezier(.36,1.6,.6,1) forwards;
+}
+@keyframes popFly {
+  0%   { transform: translate(-50%,-50%) scale(0); opacity:1; }
+  60%  { transform: translate(-50%,-80%) scale(1.3); opacity:1; }
+  100% { transform: translate(-50%,-120%) scale(1); opacity:0; }
+}
 
-  .entry {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #FDF6FF;
-    border-radius: 14px;
-    padding: 10px 12px;
-  }
-
-  .entry-left { display: flex; flex-direction: column; gap: 2px; }
-  .entry-memo { font-size: 13px; color: #A880CC; font-weight: 500; }
-  .entry-time { font-size: 10px; color: #D4B8EE; }
-  .entry-amt { font-size: 14px; font-weight: 500; color: #C488D4; }
-
-  .empty {
-    text-align: center;
-    font-size: 12px;
-    color: #D4B8EE;
-    padding: 8px 0;
-  }
-
-  .reset-btn {
-    background: none;
-    border: 1.5px solid #EDD8FF;
-    border-radius: 12px;
-    padding: 8px 0;
-    font-size: 12px;
-    color: #D4B8EE;
-    cursor: pointer;
-    text-align: center;
-    margin-top: 4px;
-  }
+.budget-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.budget-row input {
+  flex: 1;
+  border: 2px solid #FFD95A;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #E8700A;
+  outline: none;
+  background: #FFF8E7;
+}
+.budget-row button {
+  background: linear-gradient(135deg,#FFD95A,#FFA94D);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
-<div class="app">
-  <h1>ゆるい家計簿</h1>
 
+<div class="bg-deco">
+  <div class="bg-circle"></div>
+  <div class="bg-circle"></div>
+  <div class="bg-circle"></div>
+  <div class="bg-circle"></div>
+  <div class="bg-circle"></div>
+  <div class="bg-circle"></div>
+  <div class="bg-circle"></div>
+  <div class="bg-circle"></div>
+  <svg class="bg-star" width="22" height="22" viewBox="0 0 22 22"><polygon points="11,1 13.5,8 21,8 15,13 17,21 11,16 5,21 7,13 1,8 8.5,8" fill="#FFD95A"/></svg>
+  <svg class="bg-star" width="18" height="18" viewBox="0 0 22 22"><polygon points="11,1 13.5,8 21,8 15,13 17,21 11,16 5,21 7,13 1,8 8.5,8" fill="#FFA94D"/></svg>
+  <svg class="bg-star" width="24" height="24" viewBox="0 0 22 22"><polygon points="11,1 13.5,8 21,8 15,13 17,21 11,16 5,21 7,13 1,8 8.5,8" fill="#FFD95A"/></svg>
+  <svg class="bg-star" width="16" height="16" viewBox="0 0 22 22"><polygon points="11,1 13.5,8 21,8 15,13 17,21 11,16 5,21 7,13 1,8 8.5,8" fill="#FFA94D"/></svg>
+</div>
+
+<div class="app">
+  <h1>💰かけいぼ💰</h1>
+
+  <!-- 残高カード -->
   <div class="card">
-    <div class="label">今月の残り</div>
+    <div class="label">✨ 今月の残り ✨</div>
     <div class="balance" id="balance">¥30,000</div>
     <div class="balance-hint" id="balance-hint">予算 ¥30,000　使用 ¥0</div>
-    <div class="prog-track">
-      <div class="prog-fill" id="prog" style="width:0%;"></div>
-    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%;"></div></div>
+
     <div class="neko-row">
-      <img id="neko-home" class="neko-img" src="neko_yoyuu.png" alt="ねこ" />
+      <img id="neko-home" class="neko-img" src="neko_yoyuu.png" alt="ねこ"/>
       <div class="bubble" id="bubble-home">…。</div>
     </div>
+
+    <!-- 週・月累計 -->
+    <div class="summary-row">
+      <div class="summary-box">
+        <div class="summary-label">📅 今週の合計</div>
+        <div class="summary-val" id="week-total">¥0</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">📆 今月の合計</div>
+        <div class="summary-val" id="month-total">¥0</div>
+      </div>
+    </div>
+
     <div class="budget-row">
       <input type="number" id="budget-input" placeholder="今月の予算を入力" />
       <button onclick="setBudget()">設定</button>
     </div>
   </div>
 
+  <!-- 入力カード -->
   <div class="card">
     <div class="neko-row">
-      <img class="neko-img" src="neko_wait.png" alt="ねこ" />
-      <div class="bubble">はやく入力して。</div>
+      <img class="neko-img" src="neko_wait.png" alt="ねこ"/>
+      <div class="bubble">はやく入力して</div>
     </div>
+
+    <!-- 経費タイプ -->
+    <div class="type-row">
+      <div class="type-btn active" id="type-required" onclick="setType('required')">🧾 必要経費</div>
+      <div class="type-btn" id="type-notrequired" onclick="setType('notrequired')">🛍️ そうじゃない</div>
+    </div>
+
     <div class="amount-display" id="amount-display">¥ 0</div>
     <div class="keypad">
       <div class="key" onclick="pressKey('1')">1</div>
@@ -252,12 +427,35 @@
       <div class="key" onclick="pressKey('00')">00</div>
       <div class="key" onclick="pressKey('0')">0</div>
       <div class="key key-del" onclick="pressDelete()">⌫</div>
-      <div class="key key-ok" onclick="record()">記録する</div>
+      <div class="key key-ok" onclick="record()">記録する 🐾</div>
     </div>
   </div>
 
+  <!-- 累計内訳カード -->
   <div class="card">
-    <div class="history-title">今月の記録</div>
+    <div class="label">💰 内訳</div>
+    <div class="neko-row">
+      <img class="neko-img" src="neko_chui.png" alt="ねこ" style="width:56px;height:56px;"/>
+      <div class="bubble" id="bubble-breakdown">必要経費 ¥0　／　そうじゃない ¥0</div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-box">
+        <div class="summary-label">🧾 必要経費</div>
+        <div class="summary-val" id="required-total">¥0</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">🛍️ そうじゃない</div>
+        <div class="summary-val" id="notrequired-total">¥0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 履歴カード -->
+  <div class="card">
+    <div class="neko-row">
+      <img class="neko-img" src="neko_yabai.png" alt="ねこ" style="width:56px;height:56px;"/>
+      <div class="history-title" style="flex:1;">📋 今月の記録</div>
+    </div>
     <div id="history-list"><div class="empty">まだ記録がありません</div></div>
     <button class="reset-btn" onclick="resetMonth()">今月をリセット</button>
   </div>
@@ -265,25 +463,14 @@
 
 <script>
   let input = '';
-  let data = JSON.parse(localStorage.getItem('kakeibo') || '{"budget":30000,"spent":0,"entries":[]}');
+  let currentType = 'required';
+  let data = JSON.parse(localStorage.getItem('kakeibo2') || '{"budget":30000,"spent":0,"entries":[]}');
 
   const nekoStates = {
-    yoyuu: {
-      img: 'neko_yoyuu.png',
-      messages: ['…。', 'まだ余裕あるじゃん。', 'ふーん。']
-    },
-    chui: {
-      img: 'neko_chui.png',
-      messages: ['ちょっと使いすぎじゃない？', '半分以上使ってるけど。', 'ペース大丈夫？']
-    },
-    yabai: {
-      img: 'neko_yabai.png',
-      messages: ['算数できる？', 'もう残り少ないよ。', '大丈夫？']
-    },
-    owari: {
-      img: 'neko_owari.png',
-      messages: ['帰るわ。', '終わったね。', '来月はちゃんとして。']
-    }
+    yoyuu:  { img:'neko_yoyuu.png',  messages:['…。','まだ余裕あるじゃん。','ふーん。'] },
+    chui:   { img:'neko_chui.png',   messages:['ちょっと使いすぎじゃない？','半分以上使ってるけど。','ペース大丈夫？'] },
+    yabai:  { img:'neko_yabai.png',  messages:['やばくない？','もうほとんどないじゃん。','残り少ないけど、わかってる？'] },
+    owari:  { img:'neko_owari.png',  messages:['帰るわ。','終わったね。','来月はちゃんとして。'] }
   };
 
   function getNekoState(pct) {
@@ -294,16 +481,27 @@
   }
 
   function randomMsg(state) {
-    const msgs = nekoStates[state].messages;
-    return msgs[Math.floor(Math.random() * msgs.length)];
+    const m = nekoStates[state].messages;
+    return m[Math.floor(Math.random() * m.length)];
   }
 
-  function save() {
-    localStorage.setItem('kakeibo', JSON.stringify(data));
+  function save() { localStorage.setItem('kakeibo2', JSON.stringify(data)); }
+  function fmt(n) { return '¥' + Math.round(n).toLocaleString(); }
+
+  function getWeekStart() {
+    const d = new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - d.getDay());
+    return d.getTime();
+  }
+  function getMonthStart() {
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(1);
+    return d.getTime();
   }
 
-  function fmt(n) {
-    return '¥' + Math.round(n).toLocaleString();
+  function setType(type) {
+    currentType = type;
+    document.getElementById('type-required').classList.toggle('active', type === 'required');
+    document.getElementById('type-notrequired').classList.toggle('active', type === 'notrequired');
   }
 
   function updateUI() {
@@ -314,25 +512,58 @@
     document.getElementById('balance-hint').textContent =
       '予算 ' + fmt(data.budget) + '　使用 ' + fmt(data.spent);
     document.getElementById('prog').style.width = pct + '%';
-    document.getElementById('prog').style.background = pct >= 70 ? '#F4A8D8' : '#D4A8F0';
+    document.getElementById('prog').style.background =
+      pct >= 70 ? 'linear-gradient(90deg,#FFA94D,#FF6B6B)' : 'linear-gradient(90deg,#FFD95A,#FFA94D)';
 
     const state = getNekoState(pct);
-    document.getElementById('neko-home').src = nekoStates[state].img;
-    document.getElementById('bubble-home').textContent = randomMsg(state);
+    const nekoHome = document.getElementById('neko-home');
+    nekoHome.src = nekoStates[state].img;
+    nekoHome.style.animation = 'none';
+    setTimeout(() => nekoHome.style.animation = '', 10);
 
+    const bubbleEl = document.getElementById('bubble-home');
+    bubbleEl.textContent = randomMsg(state);
+    bubbleEl.style.animation = 'none';
+    setTimeout(() => bubbleEl.style.animation = '', 10);
+
+    // 週・月累計
+    const weekStart  = getWeekStart();
+    const monthStart = getMonthStart();
+    let weekTotal = 0, monthTotal = 0, reqTotal = 0, notReqTotal = 0;
+
+    data.entries.forEach(e => {
+      if (e.ts >= monthStart) { monthTotal += e.amount; }
+      if (e.ts >= weekStart)  { weekTotal  += e.amount; }
+      if (e.type === 'required')    reqTotal    += e.amount;
+      else                          notReqTotal += e.amount;
+    });
+
+    document.getElementById('week-total').textContent  = fmt(weekTotal);
+    document.getElementById('month-total').textContent = fmt(monthTotal);
+    document.getElementById('required-total').textContent    = fmt(reqTotal);
+    document.getElementById('notrequired-total').textContent = fmt(notReqTotal);
+    document.getElementById('bubble-breakdown').textContent  =
+      '必要経費 ' + fmt(reqTotal) + '　／　そうじゃない ' + fmt(notReqTotal);
+
+    // 履歴
     const list = document.getElementById('history-list');
     if (data.entries.length === 0) {
       list.innerHTML = '<div class="empty">まだ記録がありません</div>';
     } else {
-      list.innerHTML = data.entries.slice().reverse().map(e =>
-        `<div class="entry">
+      list.innerHTML = data.entries.slice().reverse().map(e => {
+        const tagClass = e.type === 'required' ? 'tag-required' : 'tag-notrequired';
+        const tagLabel = e.type === 'required' ? '🧾 必要経費' : '🛍️ そうじゃない';
+        return `<div class="entry">
           <div class="entry-left">
-            <div class="entry-memo">${e.memo || '出費'}</div>
+            <div class="entry-memo">出費</div>
             <div class="entry-time">${e.time}</div>
           </div>
-          <div class="entry-amt">-${fmt(e.amount)}</div>
-        </div>`
-      ).join('');
+          <div class="entry-right">
+            <div class="entry-amt">-${fmt(e.amount)}</div>
+            <div class="entry-tag ${tagClass}">${tagLabel}</div>
+          </div>
+        </div>`;
+      }).join('');
     }
   }
 
@@ -349,16 +580,25 @@
       '¥ ' + parseInt(input || '0').toLocaleString();
   }
 
+  function spawnPop() {
+    const el = document.createElement('div');
+    el.className = 'pop-anim';
+    el.textContent = ['🐾','✨','⭐','🌟'][Math.floor(Math.random()*4)];
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+  }
+
   function record() {
     const amount = parseInt(input || '0');
     if (amount <= 0) return;
     const now = new Date();
     const time = (now.getMonth()+1) + '/' + now.getDate() + ' ' +
       now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
-    data.entries.push({ amount, time, memo: '出費' });
+    data.entries.push({ amount, time, type: currentType, ts: now.getTime() });
     data.spent += amount;
     save();
     updateUI();
+    spawnPop();
     input = '';
     document.getElementById('amount-display').textContent = '¥ 0';
   }
@@ -367,17 +607,14 @@
     const v = parseInt(document.getElementById('budget-input').value);
     if (!v || v <= 0) return;
     data.budget = v;
-    save();
-    updateUI();
+    save(); updateUI();
     document.getElementById('budget-input').value = '';
   }
 
   function resetMonth() {
     if (!confirm('今月の記録をリセットしますか？')) return;
-    data.spent = 0;
-    data.entries = [];
-    save();
-    updateUI();
+    data.spent = 0; data.entries = [];
+    save(); updateUI();
   }
 
   updateUI();
